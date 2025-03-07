@@ -1,5 +1,5 @@
 resource "aws_s3_bucket" "terraform_state_files" {
-  bucket = "agalias-terraform-state-files"
+  bucket = var.terraform_state_bucket_name
 }
 
 resource "aws_s3_bucket_versioning" "terraform_state_versioning" {
@@ -10,5 +10,5 @@ resource "aws_s3_bucket_versioning" "terraform_state_versioning" {
 }
 
 resource "aws_s3_bucket" "agalias_templates" {
-  bucket = "agalias-templates"
+  bucket = var.templates_bucket_name
 }

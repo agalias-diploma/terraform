@@ -15,9 +15,3 @@ variable "aws_region" {
   type        = string
   default     = "eu-north-1"
 }
-
-variable "enable_versioning" {
-  description = "Enable versioning for the S3 buckets"
-  type        = bool
-  default     = true
-}
