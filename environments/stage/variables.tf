@@ -13,7 +13,7 @@ variable "region" {
 variable "aws_profile" {
   description = "AWS profile for the account"
   type        = string
-  default     = "agalias-ec2-user" # it's getting aws IAM user from ~/.aws/credentials
+  default     = "agalias-ec2-user"
 }
 
 variable "project" {
@@ -50,4 +50,21 @@ variable "ingress_rules" {
       ports = [443]
     }
   }
+}
+
+variable "mongodb_atlas_public_key" {
+  description = "MongoDB Atlas public key"
+  type        = string
+  sensitive   = true
+}
+
+variable "mongodb_atlas_private_key" {
+  description = "MongoDB Atlas private key"
+  type        = string
+  sensitive   = true
+}
+
+variable "mongodb_atlas_project_id" {
+  description = "MongoDB Atlas project ID"
+  type        = string
 }

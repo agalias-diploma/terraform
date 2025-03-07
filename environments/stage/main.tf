@@ -38,7 +38,7 @@ module "ec2" {
     backend = {
       machine_type    = "t3.micro"
       network_ip      = "10.20.10.140"
-      additional_tags = ["Name=agalias-diploma/export-jsx-to-pdf-stage"]
+      additional_tags = ["Name=agalias-diploma/backend-stage"]
     }
   }
 
@@ -50,12 +50,12 @@ module "ec2" {
 
 module "firewall" {
   source = "../../modules/firewall"
-  
+
   network = local.env
   vpc_id  = module.vpc.vpc_id
   env     = local.env
-  region  = var.region  # Add this line
-  
+  region  = var.region
+
   ingress_rules = var.ingress_rules
 }
 
