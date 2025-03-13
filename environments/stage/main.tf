@@ -1,26 +1,19 @@
 locals {
-  env = "agalias-diploma-stage"
+  env                  = "stage"
+  frontend_service_tag = "frontend"
+  backend_service_tag  = "backend"
+  domain_name          = "agalias-project.online"
 }
 
 module "vpc" {
-  source  = "terraform-aws-modules/vpc/aws"
-  version = "5.0.0"
+  source = "../../modules/vpc"
 
-  name = "${local.env}-vpc"
-  cidr = "10.20.10.0/24"
+  env    = local.env
+  region = var.region
+  azs    = ["eu-north-1a"]
 
-  azs             = ["eu-north-1a"]
-  private_subnets = ["10.20.10.0/26", "10.20.10.64/26"]
-  public_subnets  = ["10.20.10.128/26", "10.20.10.192/26"]
-
-  enable_dns_hostnames = true
-  enable_dns_support   = true
-  enable_nat_gateway   = false
-  enable_vpn_gateway   = false
-
-  tags = {
-    Name = "${local.env}-vpc"
-    env  = local.env
+  additional_tags = {
+    Environment = local.env
   }
 }
 
@@ -31,34 +24,61 @@ module "ec2" {
 
   instances = {
     frontend = {
-      machine_type    = "t3.micro"
-      network_ip      = "10.20.10.135"
-      additional_tags = ["Name=agalias-diploma/export-jsx-to-pdf-stage"]
+      machine_type = "t3.micro"
+      network_ip   = "10.20.10.135"
+      additional_tags = {
+        Name    = "stage-frontend",
+        Project = "agalias-diploma",
+        service = local.frontend_service_tag,
+        Domain  = "stage.${local.domain_name}"
+      }
     }
     backend = {
-      machine_type    = "t3.micro"
-      network_ip      = "10.20.10.140"
-      additional_tags = ["Name=agalias-diploma/backend-stage"]
+      machine_type = "t3.micro"
+      network_ip   = "10.20.10.140"
+      additional_tags = {
+        Name    = "stage-backend",
+        Project = "agalias-diploma",
+        service = local.backend_service_tag,
+        Domain  = "api-stage.${local.domain_name}"
+      }
     }
   }
 
   # VPC specific settings
   subnet            = module.vpc.public_subnets[0] # Use the first public subnet
-  security_group_id = aws_security_group.ec2_sg.id
+  security_group_id = module.firewall.security_group_id
   iam_role_name     = var.iam_role_name
 }
 
 module "firewall" {
   source = "../../modules/firewall"
 
-  network = local.env
-  vpc_id  = module.vpc.vpc_id
-  env     = local.env
-  region  = var.region
-
-  ingress_rules = var.ingress_rules
+  env    = local.env
+  vpc_id = module.vpc.vpc_id
 }
 
 resource "aws_eip" "nat" {
   domain = "vpc"
+}
+
+data "aws_route53_zone" "main" {
+  name         = local.domain_name
+  private_zone = false
+}
+
+resource "aws_route53_record" "backend" {
+  zone_id = data.aws_route53_zone.main.zone_id
+  name    = "api-stage.${local.domain_name}"
+  type    = "A"
+  ttl     = "60"
+  records = [module.ec2.instance_public_ips["backend"]]
+}
+
+resource "aws_route53_record" "frontend" {
+  zone_id = data.aws_route53_zone.main.zone_id
+  name    = "stage.${local.domain_name}"
+  type    = "A"
+  ttl     = "60"
+  records = [module.ec2.instance_public_ips["frontend"]]
 }
