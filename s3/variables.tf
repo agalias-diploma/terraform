@@ -15,3 +15,9 @@ variable "aws_region" {
   type        = string
   default     = "eu-north-1"
 }
+
+variable "terraform_state_bucket_name" {
+  description = "S3 bucket name for storing Terraform state files"
+  type        = string
+  default     = "agalias-terraform-state-files"
+}
