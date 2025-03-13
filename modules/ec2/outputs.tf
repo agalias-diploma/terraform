@@ -13,3 +13,9 @@ output "instance_private_ips" {
     instance_key => instance.private_ip
   }
 }
+
+output "instance_tags" {
+  value = {
+    for k, v in aws_instance.service_instances : k => v.tags
+  }
+}

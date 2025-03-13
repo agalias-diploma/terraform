@@ -18,11 +18,23 @@ variable "iam_role_name" {
   type        = string
 }
 
+variable "ami" {
+  description = "The AMI ID for the instances"
+  type        = string
+  default = "ami-02e2af61198e99faf" # Free tier Ubuntu 22.04 64-bit (x86)
+}
+
+variable "ssh-key" {
+  description = "The SSH key name for the instances"
+  type        = string
+  default = "agalias-personal-ec2-instances-ssh"
+}
+
 variable "instances" {
   description = "A map of instances configurations"
   type = map(object({
     machine_type    = string
     network_ip      = string
-    additional_tags = list(string)
+    additional_tags = map(string)
   }))
 }
