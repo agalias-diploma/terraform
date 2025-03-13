@@ -1,9 +1,24 @@
-output "network" {
-  description = "The name of the VPC being created"
-  value       = module.vpc.network_name
+output "vpc_id" {
+  description = "The ID of the VPC"
+  value       = module.vpc.vpc_id
 }
 
-output "subnet" {
-  description = "The names of the subnets being created"
-  value       = element(module.vpc.subnets_names, 0)
+output "vpc_name" {
+  description = "The name of the VPC"
+  value       = module.vpc.name
+}
+
+output "public_subnets" {
+  description = "List of IDs of public subnets"
+  value       = module.vpc.public_subnets
+}
+
+output "private_subnets" {
+  description = "List of IDs of private subnets"
+  value       = module.vpc.private_subnets
+}
+
+output "vpc_cidr_block" {
+  description = "The CIDR block of the VPC"
+  value       = module.vpc.vpc_cidr_block
 }
