@@ -16,12 +16,6 @@ variable "aws_profile" {
   default     = "agalias-ec2-user"
 }
 
-variable "project" {
-  description = "Project ID where firewall resources will be created"
-  type        = string
-  default     = "agalias-diploma"
-}
-
 variable "ingress_rules" {
   description = "A list of ingress rules"
   type = map(object({
