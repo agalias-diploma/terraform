@@ -17,3 +17,13 @@ output "templates_bucket_arn" {
   description = "ARN of the templates S3 bucket"
   value       = aws_s3_bucket.agalias_templates.arn
 }
+
+output "terraform_react_build_bucket" {
+  description = "The name of the bucket where React build files are stored"
+  value       = aws_s3_bucket.aws_s3_bucket_agalias_react_build_files.id
+}
+
+output "terraform_react_build_bucket_arn" {
+  description = "The ARN of the bucket where React build files are stored"
+  value       = aws_s3_bucket.aws_s3_bucket_agalias_react_build_files.arn
+}

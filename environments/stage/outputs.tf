@@ -61,7 +61,7 @@ output "domains" {
 
 output "dns_check" {
   value = {
-    nameservers = data.aws_route53_zone.main.name_servers
+    nameservers     = data.aws_route53_zone.main.name_servers
     frontend_record = aws_route53_record.frontend.fqdn
     backend_record  = aws_route53_record.backend.fqdn
   }

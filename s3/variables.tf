@@ -16,8 +16,8 @@ variable "aws_region" {
   default     = "eu-north-1"
 }
 
-variable "terraform_state_bucket_name" {
-  description = "S3 bucket name for storing Terraform state files"
+variable "terraform_react_build_bucket_name" {
+  description = "S3 bucket name for storing React build files"
   type        = string
-  default     = "agalias-terraform-state-files"
+  default     = "agalias-react-build-files"
 }

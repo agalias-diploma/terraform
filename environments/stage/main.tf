@@ -24,7 +24,7 @@ module "ec2" {
 
   instances = {
     frontend = {
-      machine_type = "t3.small"
+      machine_type = "t3.micro"
       network_ip   = "10.20.10.135"
       additional_tags = {
         Name    = "stage-frontend",
