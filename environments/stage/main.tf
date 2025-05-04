@@ -82,3 +82,109 @@ resource "aws_route53_record" "frontend" {
   ttl     = "60"
   records = [module.ec2.instance_public_ips["frontend"]]
 }
+
+####### THIS IS NOT THE BEST WAY TO DO THIS, BUT IT WORKS GOOD AND RUN SCRIPTS #######
+### Automate deployment of backend and frontend applications to EC2 instances ###
+# Create "wait for cloud-init" resources
+resource "null_resource" "wait_for_backend" {
+  depends_on = [module.ec2, aws_route53_record.backend]
+
+  provisioner "local-exec" {
+    command = <<-EOT
+      # Wait for SSH to be available
+      until ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 -i ${var.ssh_private_key_path} ubuntu@${module.ec2.instance_public_ips["backend"]} echo 'SSH ready'; do
+        echo 'Waiting for SSH to be available...'
+        sleep 10
+      done
+      
+      # Allow cloud-init to complete
+      ssh -o StrictHostKeyChecking=no -i ${var.ssh_private_key_path} ubuntu@${module.ec2.instance_public_ips["backend"]} 'cloud-init status --wait'
+    EOT
+  }
+}
+
+resource "null_resource" "wait_for_frontend" {
+  depends_on = [module.ec2, aws_route53_record.frontend]
+
+  provisioner "local-exec" {
+    command = <<-EOT
+      # Wait for SSH to be available
+      until ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 -i ${var.ssh_private_key_path} ubuntu@${module.ec2.instance_public_ips["frontend"]} echo 'SSH ready'; do
+        echo 'Waiting for SSH to be available...'
+        sleep 10
+      done
+      
+      # Allow cloud-init to complete
+      ssh -o StrictHostKeyChecking=no -i ${var.ssh_private_key_path} ubuntu@${module.ec2.instance_public_ips["frontend"]} 'cloud-init status --wait'
+    EOT
+  }
+}
+
+# Deploy to backend instance
+resource "null_resource" "deploy_backend" {
+  depends_on = [null_resource.wait_for_backend]
+
+  triggers = {
+    instance_ip = module.ec2.instance_public_ips["backend"]
+  }
+
+  connection {
+    type        = "ssh"
+    user        = "ubuntu"
+    private_key = file(var.ssh_private_key_path)
+    host        = module.ec2.instance_public_ips["backend"]
+  }
+
+  # First, prepare the instance
+  provisioner "remote-exec" {
+    inline = [
+      "sudo apt-get install -y git",
+      "sudo git clone https://github.com/agalias-diploma/backend.git /home/ubuntu/backend",
+      "sudo chown -R ubuntu:ubuntu /home/ubuntu/backend",
+      "sudo chmod -R 755 /home/ubuntu/backend"
+    ]
+  }
+
+  # Execute deployment
+  provisioner "remote-exec" {
+    inline = [
+      "chmod +x /home/ubuntu/backend/deploy-backend-ec2.sh",
+      "chmod +x /home/ubuntu/backend/entrypoint-stage.sh",
+      "sudo /home/ubuntu/backend/deploy-backend-ec2.sh"
+    ]
+  }
+}
+
+# Deploy to frontend instance
+resource "null_resource" "deploy_frontend" {
+  depends_on = [null_resource.wait_for_frontend]
+
+  triggers = {
+    instance_ip = module.ec2.instance_public_ips["frontend"]
+  }
+
+  connection {
+    type        = "ssh"
+    user        = "ubuntu"
+    private_key = file(var.ssh_private_key_path)
+    host        = module.ec2.instance_public_ips["frontend"]
+  }
+
+  # First, prepare the instance
+  provisioner "remote-exec" {
+    inline = [
+      "sudo apt-get install -y git",  
+      "sudo git clone https://github.com/agalias-diploma/export-jsx-to-pdf /home/ubuntu/frontend",
+      "sudo chown -R ubuntu:ubuntu /home/ubuntu/frontend",
+      "sudo chmod -R 755 /home/ubuntu/frontend"
+    ]
+  }
+
+  # Execute deployment
+  provisioner "remote-exec" {
+    inline = [
+      "chmod +x /home/ubuntu/frontend/deploy-frontend-ec2.sh",
+      "sudo /home/ubuntu/frontend/deploy-frontend-ec2.sh"
+    ]
+  }
+}

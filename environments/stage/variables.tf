@@ -62,3 +62,9 @@ variable "mongodb_atlas_project_id" {
   description = "MongoDB Atlas project ID"
   type        = string
 }
+
+variable "ssh_private_key_path" {
+  description = "Path to the SSH private key for instance access"
+  type        = string
+  default     = "~/.ssh/agalias-personal-ec2-instances-ssh.pem"
+}
